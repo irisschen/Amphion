@@ -27,14 +27,14 @@ phonemizer_en = EspeakBackend(
 )
 # phonemizer_en.separator = separator
 
-phonemizer_ja = EspeakBackend(
-    "ja", preserve_punctuation=False, with_stress=False, language_switch="remove-flags"
-)
+# phonemizer_ja = EspeakBackend(
+#     "ja", preserve_punctuation=False, with_stress=False, language_switch="remove-flags"
+# )
 # phonemizer_ja.separator = separator
 
-phonemizer_ko = EspeakBackend(
-    "ko", preserve_punctuation=False, with_stress=False, language_switch="remove-flags"
-)
+# phonemizer_ko = EspeakBackend(
+#     "ko", preserve_punctuation=False, with_stress=False, language_switch="remove-flags"
+# )
 # phonemizer_ko.separator = separator
 
 phonemizer_fr = EspeakBackend(
@@ -53,10 +53,10 @@ phonemizer_de = EspeakBackend(
 
 lang2backend = {
     "zh": phonemizer_zh,
-    "ja": phonemizer_ja,
+    # "ja": phonemizer_ja,
     "en": phonemizer_en,
     "fr": phonemizer_fr,
-    "ko": phonemizer_ko,
+    # "ko": phonemizer_ko,
     "de": phonemizer_de,
 }
 
