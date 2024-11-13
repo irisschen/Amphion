@@ -477,11 +477,21 @@ def merge_yi(seg: List) -> List:
 
 # Word Segmentation, and convert Chinese pronunciation to pinyin (bopomofo)
 def chinese_to_bopomofo(text_short, sentence):
+    ## 轉成ㄅㄆㄇ
+
     # bopomofos = conv(text_short)
+
+    # 切成詞
     words = jieba.lcut(text_short, cut_all=False)
+    # 一
     words = merge_yi(words)
+    # 不
     words = merge_bu(words)
+    # 兒化音
     words = merge_er(words)
+    words = merge_di(words)
+    print(words)
+    # words = ['村', '里', '还', '成','立', '了', '一', '个', '工', '会', '.']
     text = ""
 
     char_index = 0
@@ -569,17 +579,22 @@ def bopomofo_to_ipa(text):
 
 def _chinese_to_ipa(text, sentence):
     text = number_to_chinese(text.strip())
+    print(f'num: {text}')
     text = normalization(text)
+    print(f'norm: {text}')
     text = chinese_to_bopomofo(text, sentence)
+    print(f'bopomofo: {text}')
     # pinyin = bpmf_to_pinyin(text)
     text = latin_to_bopomofo(text)
     text = bopomofo_to_ipa(text)
+    print(f'ipa: {text}')
     text = re.sub("([sɹ]`[⁼ʰ]?)([→↓↑ ]+|$)", r"\1ɹ\2", text)
     text = re.sub("([s][⁼ʰ]?)([→↓↑ ]+|$)", r"\1ɹ\2", text)
     text = re.sub(r"^\||[^\w\s_,\.\?!;:\'…\|→↓↑⁼ʰ`]", "", text)
     text = re.sub(r"([,\.\?!;:\'…])", r"|\1|", text)
     text = re.sub(r"\|+", "|", text)
     text = text.rstrip("|")
+    print(f'final: {text}')
     return text
 
 

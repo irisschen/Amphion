@@ -97,13 +97,16 @@ def get_segment(text: str) -> List[str]:
 
 def chn_eng_g2p(text: str):
     # now only en and ch
+
+    # 區分出中、英文
     segments = get_segment(text)
     all_phoneme = ""
     all_tokens = []
-
     for index in range(len(segments)):
         seg = segments[index]
         phoneme, token = g2p(seg[0], text, seg[1])
+        # seg[0]: text
+        # seg[1]: zh or en
         all_phoneme += phoneme + "|"
         all_tokens += token
 
