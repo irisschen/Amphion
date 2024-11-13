@@ -425,6 +425,21 @@ def merge_bu(seg: List) -> List:
     return new_seg
 
 
+def merge_di(seg: List) -> List:
+    new_seg = []
+    last_word = ""
+    for word in seg:
+        if word == "地":
+            if last_word != "地":
+                word = last_word + word
+                new_seg = new_seg[:-1]
+                new_seg.append(word)
+        else:
+            new_seg.append(word)
+        last_word = word
+    return new_seg
+
+
 def merge_er(seg: List) -> List:
     new_seg = []
     for i, word in enumerate(seg):
