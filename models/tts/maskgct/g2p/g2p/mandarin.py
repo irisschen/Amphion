@@ -11,6 +11,9 @@ from typing import List
 from models.tts.maskgct.g2p.g2p.chinese_model_g2p import BertPolyPredict
 from models.tts.maskgct.g2p.utils.front_utils import *
 import os
+from g2pw import G2PWConverter
+
+conv = G2PWConverter()
 
 # from g2pw import G2PWConverter
 
@@ -497,6 +500,7 @@ def chinese_to_bopomofo(text_short, sentence):
     # bopomofos = conv(text_short)
 
     # 切成詞
+    # jieba.set_dictionary('dict.txt.big')
     words = jieba.lcut(text_short, cut_all=False)
     # 一
     words = merge_yi(words)
@@ -578,6 +582,24 @@ def chinese_to_bopomofo(text_short, sentence):
     return text
 
 
+def chinese_to_bopomofo_revised(text_short, sentence):
+    ## 轉成ㄅㄆㄇ
+    bopomofos = conv(text_short)[0]
+
+    text = ""
+    for i, word in enumerate(bopomofos):
+        if word is None:
+            word = sentence[i]
+        else:
+            if word[-1] in tone_dict:
+                word = word[:-1] + tone_dict[word[-1]]
+
+        if text != "":
+            text += "|"
+        text += word
+    return text
+
+
 # Convert latin pronunciation to pinyin (bopomofo)
 def latin_to_bopomofo(text):
     for regex, replacement in _latin_to_bopomofo:
@@ -597,7 +619,8 @@ def _chinese_to_ipa(text, sentence):
     print(f'num: {text}')
     text = normalization(text)
     print(f'norm: {text}')
-    text = chinese_to_bopomofo(text, sentence)
+    text = chinese_to_bopomofo_revised(text, sentence)
+
     print(f'bopomofo: {text}')
     # pinyin = bpmf_to_pinyin(text)
     text = latin_to_bopomofo(text)
