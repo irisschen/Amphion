@@ -12,10 +12,11 @@ from models.tts.maskgct.g2p.g2p.chinese_model_g2p import BertPolyPredict
 from models.tts.maskgct.g2p.utils.front_utils import *
 import os
 from g2pw import G2PWConverter
+from opencc import OpenCC
 
-conv = G2PWConverter()
 
-# from g2pw import G2PWConverter
+conv = G2PWConverter(model_dir='/home/ec2-user/Amphion/models/tts/maskgct/g2p/g2p/G2PWModel/')
+# jieba.set_dictionary('/Users/irischen/Documents/tts/Amphion/models/tts/maskgct/g2p/g2p/dict.txt.big')
 
 
 # set blank level, {0："none",1:"char", 2:"word"}
@@ -425,6 +426,8 @@ def merge_bu(seg: List) -> List:
                 word = last_word + word
             new_seg.append(word)
         last_word = word
+    if len(new_seg) != len(seg):
+        new_seg.append(last_word)
     return new_seg
 
 
@@ -440,6 +443,8 @@ def merge_di(seg: List) -> List:
         else:
             new_seg.append(word)
         last_word = word
+    if len(new_seg) != len(seg):
+        new_seg.append(last_word)
     return new_seg
 
 
@@ -450,6 +455,8 @@ def merge_er(seg: List) -> List:
             new_seg[-1] = new_seg[-1] + seg[i]
         else:
             new_seg.append(word)
+    if len(new_seg) != len(seg):
+        new_seg.append(last_word)
     return new_seg
 
 
@@ -500,7 +507,7 @@ def chinese_to_bopomofo(text_short, sentence):
     # bopomofos = conv(text_short)
 
     # 切成詞
-    # jieba.set_dictionary('dict.txt.big')
+    text_short = OpenCC("tw2s").convert(text_short)
     words = jieba.lcut(text_short, cut_all=False)
     # 一
     words = merge_yi(words)
@@ -509,7 +516,6 @@ def chinese_to_bopomofo(text_short, sentence):
     # 兒化音
     words = merge_er(words)
     words = merge_di(words)
-    print(words)
     # words = ['村', '里', '还', '成','立', '了', '一', '个', '工', '会', '.']
     text = ""
 
@@ -585,18 +591,45 @@ def chinese_to_bopomofo(text_short, sentence):
 def chinese_to_bopomofo_revised(text_short, sentence):
     ## 轉成ㄅㄆㄇ
     bopomofos = conv(text_short)[0]
+    text_short_simplied = OpenCC("tw2s").convert(text_short)
+    words_jieba = jieba.lcut(text_short_simplied, cut_all=False)
+    words_jieba = merge_yi(words_jieba)
+    words_jieba = merge_bu(words_jieba)
+    words_jieba = merge_er(words_jieba)
+    words_jieba = merge_di(words_jieba)
 
     text = ""
-    for i, word in enumerate(bopomofos):
-        if word is None:
-            word = sentence[i]
-        else:
-            if word[-1] in tone_dict:
-                word = word[:-1] + tone_dict[word[-1]]
+    char_index = 0
+    for word in words_jieba:
+        bopomofo = []
+        for i in range(len(word)):
+            if bopomofos[char_index + i] is not None and bopomofos[char_index + i][-1] in tone_dict.keys():
+                bopomofos[char_index + i] = bopomofos[char_index + i][:-1] + tone_dict[bopomofos[char_index + i][-1]]
+            elif bopomofos[char_index + i] is None:
+                bopomofos[char_index + i] = word[i]
+            bopomofo.append(bopomofos[char_index + i])
 
+        if (
+            len(word) == 3
+            and bopomofo[0][-1] == "ˇ"
+            and bopomofo[1][-1] == "ˇ"
+            and bopomofo[-1][-1] == "ˇ"
+        ):
+            bopomofo[0] = bopomofo[0] + "ˊ"
+            bopomofo[1] = bopomofo[1] + "ˊ"
+        if len(word) == 2 and bopomofo[0][-1] == "ˇ" and bopomofo[-1][-1] == "ˇ":
+            bopomofo[0] = bopomofo[0][:-1] + "ˊ"
+        bopomofo = bu_sandhi(word, bopomofo)
+        bopomofo = yi_sandhi(word, bopomofo)
+        bopomofo = er_sandhi(word, bopomofo)
+
+        for i in range(len(bopomofo)):
+            bopomofo[i] = re.sub(r"([\u3105-\u3129])$", r"\1ˉ", bopomofo[i])
         if text != "":
             text += "|"
-        text += word
+        text += "|".join(bopomofo)
+        text += "|"
+        char_index += len(word)
     return text
 
 
